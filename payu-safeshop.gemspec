@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "lib/payu-safeshop.rb",
+    "payu-safeshop.gemspec",
     "spec/payu-safeshop_spec.rb",
     "spec/spec_helper.rb",
     "spec/test_config.yml"
