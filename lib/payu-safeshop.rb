@@ -1,17 +1,21 @@
 require 'hashutils'
 require 'curb'
 
-class PayUSafeShop
+module PayUSafeShop
   
-  def initialize(config_path)
+  def self.config(config_path)
     @config = YAML.load_file(config_path)['safeshop']
     @primary_key = @config['primary-key']
     @secondary_key = @config['secondary-key']
     @curb = Curl::Easy.new(@config['url'])
   end  
 
-  def transaction
-    Transaction.new(:primary_key => @primary_key, :curb => @curb )
+  def self.get_config
+    @config
+  end
+
+  def self.transaction
+    Transaction.new(:primary_key => @primary_key, :curb => @curb, :config => @config )
   end
 
   class Transaction
@@ -24,6 +28,7 @@ class PayUSafeShop
                   
     def initialize(options = {})
       @primary_key = options[:primary_key]
+      @config = options[:config]
       @curb = options[:curb]
       @amount ||= 0
       @status = "New"
@@ -56,10 +61,8 @@ class PayUSafeShop
     end
     
     def load(xml_string)
-      p xml_string
       loaded_settings = {}
       loaded_settings.from_xml!(xml_string)
-      p loaded_settings
       loaded_settings.each do |key, val|
         self.send("#{key}=", val)
       end
@@ -116,16 +119,19 @@ class PayUSafeShop
             { 'MerchantReference' => @reference,
               'SafePayRefNr' => @safepay_ref,
               'Amount' => (@amount.to_f * 100).to_i,
-              'BankRefNr' => @bank_ref,
-              'LiveTransaction' => @live
+              'BankRefNr' => @bank_ref
             }
           }
         }
-      }.to_xml(:pretty => true, :root => 'Safe')
+      }.to_xml(:root => 'Safe')
       return "<?xml version=\"1.0\" ?>\r\n"+settle
     end
   
     def build_auth_transaction
+      card_holder_name = @config['mode'] == 'test' ? @config['test-cc-user'] : @card_holder_name
+      cc_no = @config['mode'] == 'test' ? @config['test-cc-no'] : @cc_no
+      cc_exp_date = @config['mode'] == 'test' ? @config['test-cc-exp'] : @cc_exp_date.strftime("%m%Y")
+      cc_cvv = @config['mode'] == 'test' ? @config['test-cc-cvv'] : @cc_cvv
       auth = { 'Safe' => 
         { 'Merchant' => { 'SafeKey' => @primary_key },
           'Transactions' => 
@@ -133,10 +139,10 @@ class PayUSafeShop
             { 'MerchantReference' => @reference,
               'MerchantOrderNr' => @order_no,
               'Amount' => (@amount.to_f * 100).to_i,
-              'CardHolderName' => @card_holder_name,
-              'BuyerCreditCardNr' => @cc_no,
-              'BuyerCreditCardExpireDate' => @cc_exp_date.strftime("%m%Y"),
-              'BuyerCreditCardCVV2' => @cc_cvv,
+              'CardHolderName' => card_holder_name,
+              'BuyerCreditCardNr' => cc_no,
+              'BuyerCreditCardExpireDate' => cc_exp_date ? cc_exp_date : Time.now.strftime("%m%Y"),
+              'BuyerCreditCardCVV2' => cc_cvv,
               'BuyerCreditCardBudgetTerm' => @cc_budget_term,
               'CurrencyCode' => @currency_code,
               'VatCost' => @vat_cost,
@@ -148,7 +154,7 @@ class PayUSafeShop
               'Secure3D_CAVV' => @secure3d_cavv,
               'AdditionalInfo1' => @info1,
               'AdditionalInfo2' => @info2,
-              'LiveTransaction' => @live,
+              'LiveTransaction' => @config['mode'] == 'live' ? true : false,
               'CallCentre' => @call_centre,
               'TerminalID' => @term_id,
               'MemberGUID' => @member_guid,
@@ -156,7 +162,7 @@ class PayUSafeShop
             }
           }
         }
-      }.to_xml(:pretty => true, :root => 'Safe')
+      }.to_xml(:root => 'Safe')
       return "<?xml version=\"1.0\" ?>\r\n"+auth
     end
   end

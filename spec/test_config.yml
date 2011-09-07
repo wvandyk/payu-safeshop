@@ -2,3 +2,8 @@ safeshop:
     primary-key: '11223311-11223322-2233221-22321112'
     secondary-key: '11223311-11223322-2233221-22321112'
     url: https://secure.SafeShop.co.za/s2s/SafePay.asp
+    mode: test
+    test-cc-user: test@user.com
+    test-cc-no: '4242424242424242'
+    test-cc-exp: '032012'
+    test-cc-cvv: '002'
