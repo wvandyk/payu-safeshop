@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "payu-safeshop"
   gem.homepage = "http://github.com/wvandyk/payu-safeshop"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = "Interface with pay-u safeshop for credit card transactions"
+  gem.description = "Allows you to interface with the pay-u safeshop offered by mweb for credit card transactions, currently supports auth and settle"
   gem.email = "wynand@whitewallweb.com"
   gem.authors = ["Wynand van Dyk"]
   # dependencies defined in Gemfile
