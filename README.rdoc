@@ -1,6 +1,6 @@
 = payu-safeshop
 
-Description goes here.
+This gem will allow you to do AUTH and SETTLE calls to Pay-U Safeshop as offered by Mweb
 
 == Contributing to payu-safeshop
  
