@@ -24,7 +24,7 @@ module PayUSafeShop
                   :cc_budget_term, :currency_code, :vat_cost, :vat_shipping_cost, :shipper_cost, 
                   :surcharge, :safetrack, :secure3d_xid, :secure3d_cavv, :info1, :info2, :live,
                   :call_centre, :term_id, :member_guid, :redirect_url, :safepay_ref, :bank_ref, :receipt,
-                  :status
+                  :status, :error
                   
     def initialize(options = {})
       @primary_key = options[:primary_key]
@@ -62,7 +62,7 @@ module PayUSafeShop
     
     def load(xml_string)
       loaded_settings = {}
-      loaded_settings.from_xml!(xml_string)
+      loaded_settings.from_xml!(xml_string.gsub(/[\r\n\t]/, ''))
       loaded_settings.each do |key, val|
         self.send("#{key}=", val)
       end
@@ -83,10 +83,10 @@ module PayUSafeShop
         @receipt = result[:Transactions][:ReceiptURL]
         return true
       elsif result[:Transactions] && result[:Transactions][:TransactionResult] == "Failed"
-        @invalid = result[:Transactions][:TransactionErrorResponse]
+        @error = result[:Transactions][:TransactionErrorResponse]
         return false
       else
-        @invalid = result[:Error]
+        @error = result[:Error]
         return false
       end
     end
@@ -103,10 +103,10 @@ module PayUSafeShop
         @status = "Settled"
         return true
       elsif result[:Transactions] && result[:Transactions][:TransactionResult] == "Failed"
-        @invalid = result[:Transactions][:TransactionErrorResponse]
+        @error = result[:Transactions][:TransactionErrorResponse]
         return false
       else
-        @invalid = result[:Error]
+        @error = result[:Error]
         return false
       end
     end      
