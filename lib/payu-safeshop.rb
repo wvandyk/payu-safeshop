@@ -72,8 +72,7 @@ module PayUSafeShop
       end
       transaction = self.build_auth_transaction
       @curb.http_post(transaction)
-      result = Hash.new.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
-      p result
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
       if result[:Transactions] && result[:Transactions][:TransactionResult] == "Successful"
         @status = "Authed"
         @safepay_ref = result[:Transactions][:SafePayRefNr]
@@ -95,7 +94,7 @@ module PayUSafeShop
       end
       transaction = self.build_settle_transaction
       @curb.http_post(transaction)
-      result = Hash.new.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
       if result[:Transactions] && result[:Transactions][:TransactionResult] == "Successful"
         @safepay_ref = result[:Transactions][:SafePayRefNr]
         @status = "Settled"
