@@ -57,7 +57,7 @@ module PayUSafeShop
           :receipt => @curb.escape(@receipt),
           :status => @status
         }
-      }.to_xml(:pretty => false).gsub(/[\r\n\t]/, '').gsub(/\ \ /, '')
+      }.extend(HashUtilsXML).to_xml(:pretty => false).gsub(/[\r\n\t]/, '').gsub(/\ \ /, '')
     end
     
     def load(xml_string)
@@ -123,7 +123,7 @@ module PayUSafeShop
             }
           }
         }
-      }.to_xml(:root => 'Safe')
+      }.extend(HashUtilsXML).to_xml(:root => 'Safe')
       return "<?xml version=\"1.0\" ?>\r\n"+settle
     end
   
@@ -162,7 +162,7 @@ module PayUSafeShop
             }
           }
         }
-      }.to_xml(:root => 'Safe')
+      }.extend(HashUtilsXML).to_xml(:root => 'Safe')
       return "<?xml version=\"1.0\" ?>\r\n"+auth
     end
   end
