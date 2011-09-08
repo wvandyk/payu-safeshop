@@ -72,18 +72,19 @@ module PayUSafeShop
       end
       transaction = self.build_auth_transaction
       @curb.http_post(transaction)
-      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
-      if result[:Transactions] && result[:Transactions][:TransactionResult] == "Successful"
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))['Safe']
+      p result
+      if result['Transactions'] && result['Transactions']['TransactionResult'] == "Successful"
         @status = "Authed"
-        @safepay_ref = result[:Transactions][:SafePayRefNr]
-        @bank_ref = result[:Transactions][:BankRefNr]
-        @receipt = result[:Transactions][:ReceiptURL]
+        @safepay_ref = result['Transactions']['SafePayRefNr']
+        @bank_ref = result['Transactions']['BankRefNr']
+        @receipt = result['Transactions']['ReceiptURL']
         return true
-      elsif result[:Transactions] && result[:Transactions][:TransactionResult] == "Failed"
-        @error = result[:Transactions][:TransactionErrorResponse]
+      elsif result['Transactions'] && result['Transactions']['TransactionResult'] == "Failed"
+        @error = result['Transactions']['TransactionErrorResponse']
         return false
       else
-        @error = result[:Error]
+        @error = result['Error']
         return false
       end
     end
@@ -94,16 +95,16 @@ module PayUSafeShop
       end
       transaction = self.build_settle_transaction
       @curb.http_post(transaction)
-      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))
-      if result[:Transactions] && result[:Transactions][:TransactionResult] == "Successful"
-        @safepay_ref = result[:Transactions][:SafePayRefNr]
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))['Safe']
+      if result['Transactions'] && result['Transactions']['TransactionResult'] == "Successful"
+        @safepay_ref = result['Transactions']['SafePayRefNr']
         @status = "Settled"
         return true
-      elsif result[:Transactions] && result[:Transactions][:TransactionResult] == "Failed"
-        @error = result[:Transactions][:TransactionErrorResponse]
+      elsif result['Transactions'] && result['Transactions']['TransactionResult'] == "Failed"
+        @error = result['Transactions']['TransactionErrorResponse']
         return false
       else
-        @error = result[:Error]
+        @error = result['Error']
         return false
       end
     end      

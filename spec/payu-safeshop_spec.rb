@@ -44,4 +44,13 @@ describe "PayuSafeshop" do
     t.save.should == @t.save
   end
   
+  it "should be able to talk to the safeshop interface" do
+    PayUSafeShop.config(File.dirname(__FILE__) + '/my_live_config.yml')
+    t = PayUSafeShop.transaction
+    t.amount = 1250
+    t.reference = "123123test123"
+    t.order_no = '123123'
+    t.auth.should == true
+  end
+  
 end

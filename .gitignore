@@ -46,3 +46,4 @@ tmtags
 
 # For rubinius:
 #*.rbc
+spec/my_live_config.yml
