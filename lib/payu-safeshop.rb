@@ -57,13 +57,13 @@ module PayUSafeShop
           :receipt => @curb.escape(@receipt),
           :status => @status
         }
-      }.to_xml(:pretty => false).gsub(/[\r\n\t]/, '')
+      }.to_xml(:pretty => false).gsub(/[\r\n\t]/, '').gsub(/\ \ /, '')
     end
     
     def load(xml_string)
       loaded_settings = {}
       loaded_settings.from_xml!(xml_string.gsub(/[\r\n\t]/, ''))
-      loaded_settings.each do |key, val|
+      loaded_settings['settings'].each do |key, val|
         self.send("#{key}=", val)
       end
     end
