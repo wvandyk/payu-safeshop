@@ -39,6 +39,9 @@ describe "PayuSafeshop" do
   
   it "should export the most important attributes of a transaction to xml when saved" do
     @t.save.should == "<settings><reference></reference><order_no></order_no><amount>12.5</amount><currency_code></currency_code><vat_cost></vat_cost><vat_shipping_cost></vat_shipping_cost><shipper_cost></shipper_cost><surcharge></surcharge><safetrack></safetrack><info1></info1><info2></info2><live></live><call_centre></call_centre><term_id></term_id><member_guid></member_guid><redirect_url></redirect_url><safepay_ref></safepay_ref><bank_ref></bank_ref><receipt></receipt><status>Settled</status></settings>"
+    t = PayUSafeShop.transaction
+    t.load(@t.save)
+    t.save.should == @t.save
   end
   
 end

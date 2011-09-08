@@ -63,7 +63,7 @@ module PayUSafeShop
     def load(xml_string)
       loaded_settings = {}
       loaded_settings.from_xml!(xml_string.gsub(/[\r\n\t]/, ''))
-      loaded_settings['settings'].each do |key, val|
+      loaded_settings.each do |key, val|
         self.send("#{key}=", val)
       end
     end
