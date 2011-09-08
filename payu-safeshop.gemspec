@@ -5,10 +5,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{payu-safeshop}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Wynand van Dyk"]
+  s.authors = [%q{Wynand van Dyk}]
   s.date = %q{2011-09-08}
   s.description = %q{Allows you to interface with the pay-u safeshop offered by mweb for credit card transactions, currently supports auth and settle}
   s.email = %q{wynand@whitewallweb.com}
@@ -32,13 +32,12 @@ Gem::Specification.new do |s|
     "spec/test_config.yml"
   ]
   s.homepage = %q{http://github.com/wvandyk/payu-safeshop}
-  s.licenses = ["MIT"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.licenses = [%q{MIT}]
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.6}
   s.summary = %q{Interface with pay-u safeshop for credit card transactions}
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
