@@ -57,7 +57,7 @@ module PayUSafeShop
           :receipt => @curb.escape(@receipt),
           :status => @status
         }
-      }.to_xml.gsub(/[\r\n\t]/, '')
+      }.to_xml(:pretty => false).gsub(/[\r\n\t]/, '')
     end
     
     def load(xml_string)
