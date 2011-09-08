@@ -1,4 +1,4 @@
-require 'hashutils'
+require 'active_support/core_ext/hash'
 require 'curb'
 
 module PayUSafeShop
@@ -35,7 +35,7 @@ module PayUSafeShop
     end
     
     def save
-      { :settings => {
+      settings = {
           :reference => @reference, 
           :order_no => @order_no, 
           :amount => @amount, 
@@ -56,14 +56,12 @@ module PayUSafeShop
           :bank_ref => @bank_ref, 
           :receipt => @curb.escape(@receipt),
           :status => @status
-        }
-      }.extend(HashUtilsXML).to_xml(:pretty => false).gsub(/[\r\n\t]/, '').gsub(/\ \ /, '')
+        }.to_xml(:root => 'settings', :skip_types => true).gsub(/[\r\n\t]/, '').gsub(/\ \ /, '')
     end
     
     def load(xml_string)
-      loaded_settings = {}
-      loaded_settings.from_xml!(xml_string.gsub(/[\r\n\t]/, ''))
-      loaded_settings.each do |key, val|
+      loaded_settings = Hash.from_xml(xml_string.gsub(/[\r\n\t]/, ''))
+      loaded_settings["settings"].each do |key, val|
         self.send("#{key}=", val)
       end
     end
@@ -112,19 +110,18 @@ module PayUSafeShop
     end      
   
     def build_settle_transaction
-      settle = { 'Safe' =>
-        { 'Merchant' => { 'SafeKey' => @primary_key },
+      settle = { 'Merchant' => { 'SafeKey' => @primary_key },
           'Transactions' =>
           { 'Settle' => 
-            { 'MerchantReference' => @reference,
-              'SafePayRefNr' => @safepay_ref,
-              'Amount' => (@amount.to_f * 100).to_i,
-              'BankRefNr' => @bank_ref
+            { 'MerchantReference' => @reference || '',
+              'SafePayRefNr' => @safepay_ref || '',
+              'Amount' => (@amount.to_f * 100).to_i || '',
+              'BankRefNr' => @bank_ref || ''
             }
           }
-        }
-      }.extend(HashUtilsXML).to_xml(:root => 'Safe')
-      return "<?xml version=\"1.0\" ?>\r\n"+settle
+        }.to_xml(:root => 'Safe', :dasherize => false, :camelize => false, 
+                 :skip_instruct => false, :skip_types => true)
+      return settle.gsub(/[\n\r\t]/, '').gsub(/\ \ /, '')
     end
   
     def build_auth_transaction
@@ -132,38 +129,37 @@ module PayUSafeShop
       cc_no = @config['mode'] == 'test' ? @config['test-cc-no'] : @cc_no
       cc_exp_date = @config['mode'] == 'test' ? @config['test-cc-exp'] : @cc_exp_date.strftime("%m%Y")
       cc_cvv = @config['mode'] == 'test' ? @config['test-cc-cvv'] : @cc_cvv
-      auth = { 'Safe' => 
-        { 'Merchant' => { 'SafeKey' => @primary_key },
+      auth = { 'Merchant' => { 'SafeKey' => @primary_key },
           'Transactions' => 
           { 'Auth' => 
-            { 'MerchantReference' => @reference,
-              'MerchantOrderNr' => @order_no,
-              'Amount' => (@amount.to_f * 100).to_i,
-              'CardHolderName' => card_holder_name,
-              'BuyerCreditCardNr' => cc_no,
+            { 'MerchantReference' => @reference || '',
+              'MerchantOrderNr' => @order_no || '',
+              'Amount' => (@amount.to_f * 100).to_i || '',
+              'CardHolderName' => card_holder_name || '',
+              'BuyerCreditCardNr' => cc_no || '',
               'BuyerCreditCardExpireDate' => cc_exp_date ? cc_exp_date : Time.now.strftime("%m%Y"),
-              'BuyerCreditCardCVV2' => cc_cvv,
-              'BuyerCreditCardBudgetTerm' => @cc_budget_term,
-              'CurrencyCode' => @currency_code,
-              'VatCost' => @vat_cost,
-              'VatShippingCost' => @vat_shipping_cost,
-              'ShipperCost' => @shipper_cost,
-              'SURCharge' => @surcharge,
-              'SafeTrack' => @safetrack,
-              'Secure3D_XID' => @secure3d_xid,
-              'Secure3D_CAVV' => @secure3d_cavv,
-              'AdditionalInfo1' => @info1,
-              'AdditionalInfo2' => @info2,
+              'BuyerCreditCardCVV2' => cc_cvv || '',
+              'BuyerCreditCardBudgetTerm' => @cc_budget_term || '',
+              'CurrencyCode' => @currency_code || '',
+              'VatCost' => @vat_cost || '',
+              'VatShippingCost' => @vat_shipping_cost || '',
+              'ShipperCost' => @shipper_cost || '',
+              'SURCharge' => @surcharge || '',
+              'SafeTrack' => @safetrack || '',
+              'Secure3D_XID' => @secure3d_xid || '',
+              'Secure3D_CAVV' => @secure3d_cavv || '',
+              'AdditionalInfo1' => @info1 || '',
+              'AdditionalInfo2' => @info2 || '',
               'LiveTransaction' => @config['mode'] == 'live' ? true : false,
-              'CallCentre' => @call_centre,
-              'TerminalID' => @term_id,
-              'MemberGUID' => @member_guid,
-              'RedirectURL' => @redirect_url
+              'CallCentre' => @call_centre || '',
+              'TerminalID' => @term_id || '',
+              'MemberGUID' => @member_guid || '',
+              'RedirectURL' => @redirect_url || ''
             }
           }
-        }
-      }.extend(HashUtilsXML).to_xml(:root => 'Safe')
-      return "<?xml version=\"1.0\" ?>\r\n"+auth
+        }.to_xml(:root => 'Safe', :dasherize => false, :camelize => false, 
+                 :skip_instruct => false, :skip_types => true)
+      return auth.gsub(/[\n\r\t]/, '').gsub(/\ \ /, '')
     end
   end
 end

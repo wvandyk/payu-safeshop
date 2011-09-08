@@ -4,7 +4,9 @@ source "http://rubygems.org"
 #   gem "activesupport", ">= 2.3.5"
 
 gem "curb"
-gem "hashutils"
+gem "activesupport"
+gem "i18n"
+gem "builder"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
