@@ -12,7 +12,7 @@ describe "PayuSafeshop" do
 
   it "should generate xml for the auth call" do
     @t.amount = 12.50
-    @t.build_auth_transaction.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Safe><Merchant><SafeKey>#{PayUSafeShop.get_config['primary-key']}</SafeKey></Merchant><Transactions><Auth><MerchantReference></MerchantReference><MerchantOrderNr></MerchantOrderNr><Amount>1250</Amount><CardHolderName>#{PayUSafeShop.get_config['test-cc-user']}</CardHolderName><BuyerCreditCardNr>#{PayUSafeShop.get_config['test-cc-no']}</BuyerCreditCardNr><BuyerCreditCardExpireDate>#{PayUSafeShop.get_config['test-cc-exp']}</BuyerCreditCardExpireDate><BuyerCreditCardCVV2>#{PayUSafeShop.get_config['test-cc-cvv']}</BuyerCreditCardCVV2><BuyerCreditCardBudgetTerm></BuyerCreditCardBudgetTerm><CurrencyCode></CurrencyCode><VatCost></VatCost><VatShippingCost></VatShippingCost><ShipperCost></ShipperCost><SURCharge></SURCharge><SafeTrack></SafeTrack><Secure3D_XID></Secure3D_XID><Secure3D_CAVV></Secure3D_CAVV><AdditionalInfo1></AdditionalInfo1><AdditionalInfo2></AdditionalInfo2><LiveTransaction>false</LiveTransaction><CallCentre></CallCentre><TerminalID></TerminalID><MemberGUID></MemberGUID><RedirectURL></RedirectURL></Auth></Transactions></Safe>"
+    @t.build_auth_transaction.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Safe><Merchant><SafeKey>#{PayUSafeShop.get_config['primary-key']}</SafeKey></Merchant><Transactions><Auth><MerchantReference></MerchantReference><MerchantOrderNr></MerchantOrderNr><Amount>1250</Amount><CardHolderName>#{PayUSafeShop.get_config['test-cc-user']}</CardHolderName><BuyerCreditCardNr>#{PayUSafeShop.get_config['test-cc-no']}</BuyerCreditCardNr><BuyerCreditCardExpireDate>#{PayUSafeShop.get_config['test-cc-exp']}</BuyerCreditCardExpireDate><BuyerCreditCardCVV2>#{PayUSafeShop.get_config['test-cc-cvv']}</BuyerCreditCardCVV2><BuyerCreditCardBudgetTerm></BuyerCreditCardBudgetTerm><CurrencyCode></CurrencyCode><VatCost></VatCost><VatShippingCost></VatShippingCost><ShipperCost></ShipperCost><SURCharge></SURCharge><SafeTrack></SafeTrack><Secure3D_XID></Secure3D_XID><Secure3D_CAVV></Secure3D_CAVV><AdditionalInfo1></AdditionalInfo1><AdditionalInfo2></AdditionalInfo2><LiveTransaction>False</LiveTransaction><CallCentre></CallCentre><TerminalID></TerminalID><MemberGUID></MemberGUID><RedirectURL></RedirectURL></Auth></Transactions></Safe>"
   end
 
   it "should set the status to 'New' for new transactions" do
@@ -51,6 +51,47 @@ describe "PayuSafeshop" do
     t.reference = "123123test123"
     t.order_no = '123123'
     t.auth.should == true
+  end
+  
+  it "should be able to settle a transaction with the safeshop interface" do
+    PayUSafeShop.config(File.dirname(__FILE__) + '/my_live_config.yml')
+    t = PayUSafeShop.transaction
+    t.amount = 1250
+    t.reference = "123123test123"
+    t.order_no = '123123'
+    t.auth.should == true
+    t2 = PayUSafeShop.transaction
+    t2.load(t.save)
+    t2.settle.should == true
+  end
+  
+  it "should be able to cancel a transaction with the safeshop interface" do
+    PayUSafeShop.config(File.dirname(__FILE__) + '/my_live_config.yml')
+    t = PayUSafeShop.transaction
+    t.amount = 1250
+    t.reference = "123123test123"
+    t.order_no = '123123'
+    t.auth.should == true
+    t2 = PayUSafeShop.transaction
+    t2.load(t.save)
+    t2.cancel.should == true
+  end
+
+  it "should be able to refund a settled transaction with the safeshop interface" do
+    PayUSafeShop.config(File.dirname(__FILE__) + '/my_live_config.yml')
+    t = PayUSafeShop.transaction
+    t.amount = 1250
+    t.reference = "123123test123"
+    t.order_no = '123123'
+    t.auth.should == true
+    t2 = PayUSafeShop.transaction
+    t2.load(t.save)
+    t2.settle.should == true
+
+    t3 = PayUSafeShop.transaction
+    t3.load(t2.save)
+    t3.refund.should == true
+
   end
   
 end

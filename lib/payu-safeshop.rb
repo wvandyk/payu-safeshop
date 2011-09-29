@@ -73,7 +73,6 @@ module PayUSafeShop
       transaction = self.build_auth_transaction
       @curb.http_post(transaction)
       result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))['Safe']
-      p result
       if result['Transactions'] && result['Transactions']['TransactionResult'] == "Successful"
         @status = "Authed"
         @safepay_ref = result['Transactions']['SafePayRefNr']
@@ -108,6 +107,77 @@ module PayUSafeShop
         return false
       end
     end      
+
+    # This method fails during testing, dont use it.
+    def refund
+      if @status != "Settled"
+        return false
+      end
+      transaction = self.build_refund_transaction
+      @curb.http_post(transaction)
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))['Safe']
+      if result['Transactions'] && result['Transactions']['TransactionResult'] == "Successful"
+        @safepay_ref = result['Transactions']['SafePayRefNr']
+        @status = "Refunded"
+        return true
+      elsif result['Transactions'] && result['Transactions']['TransactionResult'] == "Failed"
+        @error = result['Transactions']['TransactionErrorResponse']
+        return false
+      else
+        @error = result['Error']
+        return false
+      end
+    end
+
+    def cancel
+      if @status != "Authed"
+        return false
+      end
+      transaction = self.build_cancel_transaction
+      @curb.http_post(transaction)
+      result = Hash.from_xml(@curb.body_str.gsub(/[\r\n\t]/, ''))['Safe']
+      if result['Transactions'] && result['Transactions']['TransactionResult'] == "Successful"
+        @safepay_ref = result['Transactions']['SafePayRefNr']
+        @status = "Canceled"
+        return true
+      elsif result['Transactions'] && result['Transactions']['TransactionResult'] == "Failed"
+        @error = result['Transactions']['TransactionErrorResponse']
+        return false
+      else
+        @error = result['Error']
+        return false
+      end
+    end
+  
+    def build_cancel_transaction
+      refund = {'Merchant' => { 'SafeKey' => @primary_key },
+          'Transactions' =>
+          { 'Cancel' => 
+            { 'MerchantReference' => @reference || '',
+              'SafePayRefNr' => @safepay_ref || '',
+              'Amount' => (@amount.to_f * 100).to_i || '',
+              'BankRefNr' => @bank_ref || ''
+            }
+          }
+        }.to_xml(:root => 'Safe', :dasherize => false, :camelize => false, 
+                 :skip_instruct => false, :skip_types => true)
+      return refund.gsub(/[\n\r\t]/, '').gsub(/\ \ /, '')
+    end
+  
+    def build_refund_transaction
+      refund = {'Merchant' => { 'SafeKey' => @primary_key },
+          'Transactions' =>
+          { 'Credit' => 
+            { 'MerchantReference' => @reference || '',
+              'SafePayRefNr' => @safepay_ref || '',
+              'Amount' => (@amount.to_f * 100).to_i || '',
+              'BankRefNr' => @bank_ref || ''
+            }
+          }
+        }.to_xml(:root => 'Safe', :dasherize => false, :camelize => false, 
+                 :skip_instruct => false, :skip_types => true)
+      return refund.gsub(/[\n\r\t]/, '').gsub(/\ \ /, '')
+    end
   
     def build_settle_transaction
       settle = { 'Merchant' => { 'SafeKey' => @primary_key },
@@ -150,7 +220,7 @@ module PayUSafeShop
               'Secure3D_CAVV' => @secure3d_cavv || '',
               'AdditionalInfo1' => @info1 || '',
               'AdditionalInfo2' => @info2 || '',
-              'LiveTransaction' => @config['mode'] == 'live' ? true : false,
+              'LiveTransaction' => @config['mode'] == 'live' ? 'True' : 'False',
               'CallCentre' => @call_centre || '',
               'TerminalID' => @term_id || '',
               'MemberGUID' => @member_guid || '',
